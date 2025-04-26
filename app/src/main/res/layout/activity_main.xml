@@ -1,0 +1,77 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="#000000">
+
+    <!-- Clock on the left -->
+    <RelativeLayout
+        android:id="@+id/clock_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp">
+
+        <TextView
+            android:id="@+id/clock_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00:00"
+            android:textColor="#feffeb"
+            android:textSize="96sp"
+            android:fontFamily="sans-serif-light" />
+
+        <TextView
+            android:id="@+id/date_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/clock_text"
+            android:layout_centerHorizontal="true"
+            android:text="Thursday, April 3, 2025"
+            android:textColor="#CCCCCC"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-light" />
+    </RelativeLayout>
+
+    <!-- Content area on the right -->
+    <LinearLayout
+        android:id="@+id/panel_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- Weather panel -->
+        <LinearLayout
+            android:id="@+id/weather_panel_wrapper"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <include
+                android:id="@+id/weather_layout"
+                layout="@layout/weather_layout" />
+
+            <TextView
+                android:id="@+id/last_updated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Last updated: Never"
+                android:textSize="14sp"
+                android:textColor="#CCCCCC"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Zabbix panel -->
+        <include
+            android:id="@+id/zabbix_layout"
+            layout="@layout/news_layout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
