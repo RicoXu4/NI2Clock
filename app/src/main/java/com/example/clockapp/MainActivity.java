@@ -122,10 +122,10 @@ public class MainActivity extends Activity {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX > 0) {
-                            // Swipe Right: show weather
+                            // Swipe Right: show the Zabbix metrics panel
                             showZabbixLayout();
                         } else {
-                            // Swipe Left: show Zabbix
+                            // Swipe Left: return to the weather panel
                             showWeatherLayout();
                         }
                         return true;

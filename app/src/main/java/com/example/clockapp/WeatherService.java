@@ -145,18 +145,7 @@ public class WeatherService extends Service {
 
                 Log.d("WeatherService", "Raw Response: " + result.toString());
 
-                JSONObject jsonObject = new JSONObject(result.toString());
-
-                WeatherData weather = new WeatherData();
-                weather.location = jsonObject.getString("name");
-
-                JSONObject main = jsonObject.getJSONObject("main");
-                weather.temperature = Math.round(main.getDouble("temp")) + "°C";
-
-                JSONObject weatherDetails = jsonObject.getJSONArray("weather").getJSONObject(0);
-                weather.condition = weatherDetails.getString("main");
-
-                return weather;
+                return parseWeatherJson(result.toString());
 
             } catch (IOException | JSONException e) {
                 Log.e("WeatherService", "Exception: " + e.getMessage(), e);
@@ -179,7 +168,22 @@ public class WeatherService extends Service {
         }
     }
 
-    private static class WeatherData {
+    static WeatherData parseWeatherJson(String json) throws JSONException {
+        JSONObject jsonObject = new JSONObject(json);
+
+        WeatherData weather = new WeatherData();
+        weather.location = jsonObject.getString("name");
+
+        JSONObject main = jsonObject.getJSONObject("main");
+        weather.temperature = Math.round(main.getDouble("temp")) + "°C";
+
+        JSONObject weatherDetails = jsonObject.getJSONArray("weather").getJSONObject(0);
+        weather.condition = weatherDetails.getString("main");
+
+        return weather;
+    }
+
+    static class WeatherData {
         String location;
         String temperature;
         String condition;
