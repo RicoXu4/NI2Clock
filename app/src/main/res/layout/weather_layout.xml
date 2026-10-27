@@ -1,97 +1,17 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="#111111"
-    android:padding="12dp">
-
-    <!-- Horizontal layout for the title and refresh button -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-
-        android:gravity="start|center_vertical">
-
-        <TextView
-            android:id="@+id/weather_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Your Location"
-            android:textColor="#FFFFFF"
-            android:background="#222222"
-            android:textSize="18sp" />
-
-        <Button
-            android:id="@+id/refresh_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Refresh"
-            android:textColor="#000000"
-            android:layout_marginStart="16dp"
-            android:layout_gravity="center_vertical" />
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/DashboardCard" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="24dp" android:orientation="vertical">
+        <TextView android:id="@+id/weather_location" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/your_location"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
+        <TextView android:id="@+id/weather_temp" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/temperature_placeholder"
+            android:layout_marginTop="16dp" android:textColor="@color/primary"
+            android:textAppearance="@style/TextAppearance.Material3.DisplayLarge" />
+        <TextView android:id="@+id/weather_condition" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/loading"
+            android:layout_marginTop="16dp" android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#222222"
-        android:layout_marginTop="8dp">
-
-        <TextView
-            android:id="@+id/weather_temp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="72°F"
-            android:textColor="#FFFFFF"
-            android:background="#222222"
-            android:textSize="36sp" />
-
-        <TextView
-            android:id="@+id/weather_condition"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_gravity="center_vertical"
-            android:text="Partly Cloudy"
-            android:textColor="#DDDDDD"
-            android:background="#222222"
-            android:textSize="16sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/zabbix_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="12dp"
-        android:background="#222222">
-
-        <TextView
-            android:id="@+id/cpu_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CPU: --%"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/ram_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RAM: --%"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:layout_marginTop="4dp" />
-
-        <TextView
-            android:id="@+id/network_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Network: -- Mbps"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:layout_marginTop="4dp" />
-    </LinearLayout>
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

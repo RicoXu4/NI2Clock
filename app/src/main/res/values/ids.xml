@@ -1,0 +1,8 @@
+<resources>
+    <item name="weather_sheet" type="id" />
+    <item name="zabbix_sheet" type="id" />
+    <item name="refresh_button" type="id" />
+    <item name="zabbix_refresh_button" type="id" />
+    <item name="last_updated" type="id" />
+    <item name="zabbix_status" type="id" />
+</resources>

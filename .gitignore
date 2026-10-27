@@ -13,3 +13,11 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local service configuration
+/clock.properties
+
+# Python bridge caches
+__pycache__/
+
+/.ni2clock-approval.sock

@@ -1,0 +1,9 @@
+# Copy to clock.properties and supply your own values.
+weather.apiKey=
+zabbix.url=
+zabbix.token=
+
+# Optional Codex usage bridge defaults (or enter these in app Settings).
+# Generate a local pairing key with tools/codex_usage_bridge.py --configure.
+codex.bridgeUrl=
+codex.bridgeToken=

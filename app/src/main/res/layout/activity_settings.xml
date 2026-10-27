@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/settings_toolbar"
+        android:layout_width="match_parent" android:layout_height="56dp"
+        app:title="@string/settings"
+        app:titleTextColor="@color/white" app:navigationIcon="@drawable/ic_close"
+        app:navigationIconTint="@color/white" app:navigationContentDescription="@string/cancel" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:fillViewport="true" android:clipToPadding="false">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:padding="16dp" android:orientation="vertical">
+
+<com.google.android.material.card.MaterialCardView style="@style/DashboardCard"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="20dp" android:orientation="vertical">
+<TextView
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="0dp"
+    android:text="@string/server_monitoring"
+    android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/zabbix_address_input"
+    style="@style/OutlinedField" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="16dp" android:hint="@string/zabbix_address">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/zabbix_address"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="textUri" android:singleLine="true" />
+</com.google.android.material.textfield.TextInputLayout>
+<TextView
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:text="@string/zabbix_address_help"
+    android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+<TextView
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="24dp"
+    android:text="@string/authentication"
+    android:textAppearance="@style/TextAppearance.Material3.TitleSmall" />
+<RadioGroup android:id="@+id/zabbix_authentication"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="8dp" android:orientation="vertical">
+    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/auth_token"
+        android:layout_width="match_parent" android:layout_height="48dp"
+        android:text="@string/api_token" android:checked="true" app:useMaterialThemeColors="true" />
+    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/auth_password"
+        android:layout_width="match_parent" android:layout_height="48dp"
+        android:text="@string/username_password" app:useMaterialThemeColors="true" />
+</RadioGroup>
+<LinearLayout android:id="@+id/token_fields" android:layout_width="match_parent"
+    android:layout_height="wrap_content" android:orientation="vertical">
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/zabbix_token_input"
+    style="@style/OutlinedField" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="16dp" android:hint="@string/api_token" app:endIconMode="password_toggle">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/zabbix_token"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="textPassword" android:singleLine="true" />
+</com.google.android.material.textfield.TextInputLayout>
+</LinearLayout><LinearLayout android:id="@+id/password_fields" android:layout_width="match_parent"
+    android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/zabbix_username_input"
+    style="@style/OutlinedField" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="16dp" android:hint="@string/username">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/zabbix_username"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="textNoSuggestions" android:singleLine="true" />
+</com.google.android.material.textfield.TextInputLayout>
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/zabbix_password_input"
+    style="@style/OutlinedField" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="16dp" android:hint="@string/password" app:endIconMode="password_toggle">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/zabbix_password"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:inputType="textPassword" android:singleLine="true" />
+</com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>
+</LinearLayout></com.google.android.material.card.MaterialCardView>
+<com.google.android.material.card.MaterialCardView style="@style/DashboardCard"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="20dp" android:orientation="vertical">
+<TextView
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="0dp"
+    android:text="@string/connection_security"
+    android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
+<com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/ignore_certificate_errors"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="56dp"
+    android:layout_marginTop="8dp" android:text="@string/ignore_certificate_errors"
+    app:useMaterialThemeColors="true" />
+<TextView
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:text="@string/certificate_bypass_help"
+    android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+</LinearLayout></com.google.android.material.card.MaterialCardView>
+<com.google.android.material.card.MaterialCardView style="@style/DashboardCard"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="20dp" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/codex_usage_title" android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:text="@string/codex_bridge_help"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/codex_bridge_address_input"
+            style="@style/OutlinedField" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:hint="@string/codex_bridge_address">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/codex_bridge_address"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textUri" android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/codex_pairing_key_input"
+            style="@style/OutlinedField" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:hint="@string/codex_pairing_key" app:endIconMode="password_toggle">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/codex_pairing_key"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:inputType="textPassword" android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+</LinearLayout></ScrollView>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="end|center_vertical" android:orientation="horizontal" android:padding="16dp">
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/cancel_settings" style="@style/IconAction"
+    android:layout_width="48dp" android:layout_height="48dp"
+    android:contentDescription="@string/cancel" app:icon="@drawable/ic_close" /><Space android:layout_width="12dp" android:layout_height="1dp" /><com.google.android.material.button.MaterialButton
+    android:id="@+id/save_settings" style="@style/IconAction"
+    android:layout_width="48dp" android:layout_height="48dp"
+    android:contentDescription="@string/save_settings" app:icon="@drawable/ic_check" />
+    </LinearLayout>
+</LinearLayout>

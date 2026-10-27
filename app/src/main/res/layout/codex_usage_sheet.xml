@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/codex_usage_sheet"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="20dp" android:background="@color/background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="@string/codex_usage_title"
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/codex_usage_refresh"
+            style="@style/IconAction" android:layout_width="48dp" android:layout_height="48dp"
+            android:contentDescription="@string/refresh" app:icon="@drawable/ic_refresh" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/codex_usage_close"
+            style="@style/IconAction" android:layout_width="48dp" android:layout_height="48dp"
+            android:layout_marginStart="8dp" android:contentDescription="@string/cancel"
+            app:icon="@drawable/ic_close" />
+    </LinearLayout>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/codex_usage_subtitle" android:layout_marginTop="8dp"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/codex_usage_loading" android:layout_width="match_parent"
+        android:layout_height="4dp" android:layout_marginTop="12dp" android:indeterminate="true" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp">
+        <LinearLayout android:id="@+id/codex_usage_rows" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical" />
+    </ScrollView>
+    <TextView android:id="@+id/codex_usage_status" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="@string/loading"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall" android:layout_marginTop="8dp" />
+</LinearLayout>

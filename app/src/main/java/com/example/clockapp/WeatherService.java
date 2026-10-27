@@ -1,36 +1,35 @@
-// WeatherService.java
 package com.example.clockapp;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 
-import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class WeatherService extends Service {
-
+    private static final long UPDATE_INTERVAL_MS = 60 * 60 * 1000L;
+    private static final long LOCATION_TIMEOUT_MS = 20_000L;
     private final IBinder binder = new WeatherBinder();
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private LocationManager locationManager;
     private WeatherListener listener;
-    private final long UPDATE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
-    private Handler updateHandler;
-    private Runnable updateRunnable;
-    private long lastUpdated = 0;
+    private boolean updating;
+    private boolean destroyed;
 
     public class WeatherBinder extends Binder {
         WeatherService getService() {
@@ -43,61 +42,69 @@ public class WeatherService extends Service {
         void onWeatherError(String error);
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
-    }
+    private final Runnable periodicUpdate = new Runnable() {
+        @Override
+        public void run() {
+            requestWeatherUpdate();
+            handler.postDelayed(this, UPDATE_INTERVAL_MS);
+        }
+    };
+
+    private final Runnable locationTimeout = () -> {
+        stopLocationUpdates();
+        reportError(getString(R.string.location_timeout));
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        updateHandler = new Handler();
-        updateRunnable = new Runnable() {
-            @Override
-            public void run() {
-                requestWeatherUpdate();
-                updateHandler.postDelayed(this, UPDATE_INTERVAL_MS);
-            }
-        };
-        updateHandler.post(updateRunnable);
+        handler.postDelayed(periodicUpdate, UPDATE_INTERVAL_MS);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (updateHandler != null && updateRunnable != null) {
-            updateHandler.removeCallbacks(updateRunnable);
-        }
+    public IBinder onBind(Intent intent) {
+        return binder;
     }
 
     public void setWeatherListener(WeatherListener listener) {
         this.listener = listener;
     }
 
-    public long getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void forceRefresh() {
-        requestWeatherUpdate();
-    }
-
     public void requestWeatherUpdate() {
+        if (destroyed || updating) {
+            return;
+        }
+        if (BuildConfig.WEATHER_API_KEY.isEmpty()) {
+            reportError(getString(R.string.weather_not_configured));
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            reportError(getString(R.string.location_permission_denied));
+            return;
+        }
         try {
-            locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER,
-                    locationListener, null);
-        } catch (SecurityException e) {
-            if (listener != null) {
-                listener.onWeatherError("Location permission denied");
+            if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                reportError(getString(R.string.location_disabled));
+                return;
             }
+            updating = true;
+            locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER,
+                    locationListener, Looper.getMainLooper());
+            handler.postDelayed(locationTimeout, LOCATION_TIMEOUT_MS);
+        } catch (SecurityException | IllegalArgumentException e) {
+            stopLocationUpdates();
+            reportError(getString(R.string.location_unavailable));
         }
     }
 
-    private LocationListener locationListener = new LocationListener() {
+    private final LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-            new FetchWeatherTask().execute(location.getLatitude(), location.getLongitude());
+            stopLocationUpdates();
+            executor.execute(() -> fetchWeather(location));
         }
 
         @Override
@@ -108,80 +115,51 @@ public class WeatherService extends Service {
 
         @Override
         public void onProviderDisabled(String provider) {
-            if (listener != null) {
-                listener.onWeatherError("Location provider disabled");
-            }
+            stopLocationUpdates();
+            reportError(getString(R.string.location_disabled));
         }
     };
 
-    private class FetchWeatherTask extends AsyncTask<Double, Void, WeatherData> {
-        @Override
-        protected WeatherData doInBackground(Double... params) {
-            double latitude = params[0];  // New York
-            double longitude = params[1];
-
-            String apiUrl = "http://api.openweathermap.org/data/2.5/weather?" +
-                    "lat=" + latitude + "&lon=" + longitude + "&units=metric" +
-                    "&appid=82b12e5fa111e46061396a9e98aee61d";
-
-            try {
-                Log.d("WeatherService", "Lat: " + latitude + ", Lon: " + longitude);
-                Log.d("WeatherService", "Requesting weather from: " + apiUrl);
-                URL url = new URL(apiUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-
-                int responseCode = connection.getResponseCode();
-                Log.d("WeatherService", "Response Code: " + responseCode);
-
-                InputStream inputStream = connection.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                StringBuilder result = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
+    private void fetchWeather(Location location) {
+        String address = "https://api.openweathermap.org/data/2.5/weather?lat="
+                + location.getLatitude() + "&lon=" + location.getLongitude()
+                + "&units=metric&appid=" + android.net.Uri.encode(BuildConfig.WEATHER_API_KEY);
+        try {
+            JSONObject response = JsonHttpClient.request(address, null);
+            String city = response.getString("name");
+            String temperature = Math.round(response.getJSONObject("main").getDouble("temp")) + "°C";
+            String condition = response.getJSONArray("weather").getJSONObject(0).getString("main");
+            handler.post(() -> {
+                updating = false;
+                if (!destroyed && listener != null) {
+                    listener.onWeatherDataReceived(city, temperature, condition);
                 }
-
-                Log.d("WeatherService", "Raw Response: " + result.toString());
-
-                JSONObject jsonObject = new JSONObject(result.toString());
-
-                WeatherData weather = new WeatherData();
-                weather.location = jsonObject.getString("name");
-
-                JSONObject main = jsonObject.getJSONObject("main");
-                weather.temperature = Math.round(main.getDouble("temp")) + "°C";
-
-                JSONObject weatherDetails = jsonObject.getJSONArray("weather").getJSONObject(0);
-                weather.condition = weatherDetails.getString("main");
-
-                return weather;
-
-            } catch (IOException | JSONException e) {
-                Log.e("WeatherService", "Exception: " + e.getMessage(), e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(WeatherData result) {
-            if (listener != null) {
-                if (result != null) {
-                    listener.onWeatherDataReceived(result.location,
-                            result.temperature,
-                            result.condition);
-                    lastUpdated = System.currentTimeMillis();
-                } else {
-                    listener.onWeatherError("Failed to fetch weather data");
-                }
-            }
+            });
+        } catch (Exception e) {
+            Log.w("WeatherService", "Weather request failed: " + e.getClass().getSimpleName());
+            handler.post(() -> reportError(getString(R.string.weather_fetch_failed)));
         }
     }
 
-    private static class WeatherData {
-        String location;
-        String temperature;
-        String condition;
+    private void reportError(String message) {
+        updating = false;
+        if (!destroyed && listener != null) {
+            listener.onWeatherError(message);
+        }
+    }
+
+    private void stopLocationUpdates() {
+        handler.removeCallbacks(locationTimeout);
+        locationManager.removeUpdates(locationListener);
+    }
+
+    @Override
+    public void onDestroy() {
+        destroyed = true;
+        listener = null;
+        stopLocationUpdates();
+        handler.removeCallbacksAndMessages(null);
+        executor.shutdownNow();
+        super.onDestroy();
     }
 }
