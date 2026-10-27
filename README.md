@@ -13,6 +13,13 @@ position every 30 seconds. The display stays awake while the activity is visible
 All three panels use the same full-width header, icon actions, scrollable cards,
 and a status footer. Portrait layouts are supported as well.
 
+## Project background
+
+This project began as an experiment in building an Android clock entirely with
+AI-generated code, for older phones used to monitor a private network.
+The [original project notes](docs/project-background.md) preserve that background
+and the earlier feature list. The instructions below describe the current app.
+
 ## Build
 
 Use Android Studio's bundled JDK (21), or JDK 17, with Android SDK 35 and Build Tools 35.0.0 installed.
