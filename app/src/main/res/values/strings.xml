@@ -73,4 +73,5 @@
     <string name="codex_approval_offline">Bridge offline — waiting to reconnect</string>
     <string name="codex_approval_sending">Sending your decision…</string>
     <string name="codex_approval_failed">Could not confirm — retry your decision</string>
+    <string name="codex_app_approval_title">Allow Codex to use %1$s?</string>
 </resources>

@@ -15,6 +15,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from codex_approvals import ApprovalQueue, LocalApprovalServer
+from codex_desktop_approvals import DesktopApprovals
 
 
 def sanitized_snapshot(result, observed_at=None):
@@ -149,7 +150,7 @@ class UsageCache:
             return dict(self.snapshot, refreshFailed=self.failed)
 
 
-def make_handler(cache, token, approvals=None):
+def make_handler(cache, token, approvals=None, desktop=None):
     class Handler(BaseHTTPRequestHandler):
         def authorized(self):
             supplied = self.headers.get('Authorization', '')
@@ -165,7 +166,8 @@ def make_handler(cache, token, approvals=None):
             if not self.authorized():
                 return
             if self.path == '/approvals':
-                self.respond(200, {'requests': approvals.list() if approvals else []})
+                self.respond(200, {'requests': (desktop.list() if desktop else [])
+                              + (approvals.list() if approvals else [])})
                 return
             result = cache.get()
             self.respond(200 if result is not None else 503,
@@ -183,8 +185,13 @@ def make_handler(cache, token, approvals=None):
                     raise ValueError('Invalid body size')
                 self.connection.settimeout(5)
                 body = json.loads(self.rfile.read(size))
-                accepted = approvals.decide(self.path[len('/approvals/'):], body.get('decision'))
-            except (OSError, ValueError, AttributeError):
+                request_id = self.path[len('/approvals/'):]
+                target = desktop if request_id.startswith('app-') else approvals
+                accepted = target.decide(request_id, body.get('decision')) if target else False
+            except OSError:
+                self.respond(503, {'error': 'Desktop response could not be confirmed'})
+                return
+            except (ValueError, AttributeError):
                 self.respond(400, {'error': 'Invalid decision'})
                 return
             self.respond(200 if accepted else 409, {'resolved': accepted})
@@ -244,10 +251,12 @@ def main():
     source = CodexSession(args.codex)
     cache = UsageCache(source)
     approvals = ApprovalQueue()
+    desktop = DesktopApprovals()
     local = LocalApprovalServer(approvals)
-    server = ThreadingHTTPServer((args.host, args.port), make_handler(cache, token, approvals))
+    server = ThreadingHTTPServer((args.host, args.port), make_handler(cache, token, approvals, desktop))
     server.daemon_threads = True
     threading.Thread(target=local.serve_forever, daemon=True).start()
+    desktop.start()
     try:
         initial = cache.get()
         print(f'Usage bridge listening on {args.host}:{args.port}; '
@@ -257,6 +266,7 @@ def main():
         pass
     finally:
         server.server_close()
+        desktop.close()
         local.shutdown()
         local.server_close()
         source.close()

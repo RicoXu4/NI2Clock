@@ -155,6 +155,38 @@ It does not bypass hook trust or change approval policy. This only covers
 Codex sessions that load and trust the hook, and tool paths supporting
 PermissionRequest. The usage app-server alone cannot observe desktop approvals.
 
+**Approve for me:** PermissionRequest hooks run before native review. The phone
+hook therefore returns no decision immediately when the active reviewer is
+`auto_review`, leaving safe requests to Codex without a phone popup or delay.
+Hook-based approvals are supported for manual (`user`) review mode only; this hook
+cannot forward a later human prompt after automatic review.
+
+The current hook protocol does not include the effective reviewer. The bridge
+checks the supplied transcript's exact session and latest turn context instead.
+Transcript format is not a stable API: missing, mismatched or unknown context
+always falls back to native Codex, without forwarding or granting permission.
+It never infers the reviewer from global config or `permission_mode`. Pending
+requests are withdrawn if the active reviewer or turn changes, and old phone
+responses cannot approve them.
+
+**Computer Use app access:** The bridge also listens to the desktop app's local
+IPC conversation streams for pending “Allow Codex to use this app?” cards. These
+are forwarded in either manual or **Approve for me** mode because they are
+already waiting for a human response. The phone shows the app, reason, chat,
+and access scope. Approve uses the desktop's primary action: this conversation
+when supported, otherwise this request. It never selects **Always allow**.
+Deny declines that exact pending request. Desktop-side answers remove the phone
+card; disconnects, changed requests, revision gaps and stale responses cannot
+grant access. macOS Screen Recording/Accessibility prompts remain local.
+
+This adapter uses the inspected desktop's private IPC protocol (stream version
+11, elicitation response version 1), not a stable public API. It subscribes to
+the 64 most recently active, nonarchived local chats recorded in state_5.sqlite;
+remote-host chats are not supported. Unknown protocol versions fail closed and
+leave approval in the desktop app. Chat content is never forwarded to the
+phone; only app-access request fields are exposed. No bundled desktop files or
+saved Computer Use permissions are modified.
+
 The hook submits through a local Unix socket restricted to the computer user;
 remote clients cannot create approval requests. The paired HTTP API exposes
 GET /approvals and POST /approvals/<opaque-request-id> with only approve/deny.

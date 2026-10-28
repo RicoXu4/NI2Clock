@@ -9,6 +9,7 @@ import stat
 import threading
 import time
 from pathlib import Path
+from codex_approval_policy import should_forward
 
 SOCKET_PATH = Path(__file__).resolve().parents[1] / '.ni2clock-approval.sock'
 MAX_REQUEST = 64 * 1024
@@ -21,8 +22,8 @@ class ApprovalQueue:
         self.pending = {}
 
     def add(self, payload):
-        if payload.get('hook_event_name') != 'PermissionRequest':
-            raise ValueError('Only PermissionRequest is supported')
+        if not should_forward(payload):
+            raise ValueError('Only confirmed manual-review requests are forwarded')
         if not isinstance(payload.get('tool_name'), str) or not payload['tool_name']:
             raise ValueError('Tool name required')
         request = {'id': secrets.token_urlsafe(24), 'tool': payload['tool_name'],
@@ -30,7 +31,9 @@ class ApprovalQueue:
                    'cwd': str(payload.get('cwd') or ''),
                    'input': payload.get('tool_input'), 'expiresAt': int(time.time() + self.lifetime)}
         entry = {'request': request, 'deadline': time.monotonic() + self.lifetime,
-                 'event': threading.Event(), 'decision': None}
+                 'event': threading.Event(), 'decision': None,
+                 'policy': {key: payload.get(key) for key in
+                            ('hook_event_name', 'session_id', 'turn_id', 'transcript_path')}}
         with self.lock:
             if len(self.pending) >= 32:
                 raise ValueError('Approval queue full')
@@ -44,14 +47,23 @@ class ApprovalQueue:
     def list(self):
         with self.lock:
             return [e['request'] for e in self.pending.values()
-                    if e['deadline'] > time.monotonic() and not e['event'].is_set()]
+                    if self._is_pending(e)]
+
+    def _is_pending(self, entry):
+        if entry['event'].is_set():
+            return False
+        if entry['deadline'] <= time.monotonic() or not should_forward(entry['policy']):
+            # Withdraw a stale request and release the hook back to native Codex.
+            entry['event'].set()
+            return False
+        return True
 
     def decide(self, request_id, decision):
         if decision not in ('approve', 'deny'):
             raise ValueError('Invalid decision')
         with self.lock:
             entry = self.pending.get(request_id)
-            if entry is None or entry['deadline'] <= time.monotonic() or entry['event'].is_set():
+            if entry is None or not self._is_pending(entry):
                 return False
             entry['decision'] = decision
             entry['event'].set()

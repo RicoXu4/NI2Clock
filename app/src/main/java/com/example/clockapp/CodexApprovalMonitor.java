@@ -30,6 +30,7 @@ final class CodexApprovalMonitor {
     private MaterialButton denyButton;
     private LinearLayout details;
     private String currentId;
+    private String requestTitle;
     private boolean active = true;
     private boolean deciding;
 
@@ -87,6 +88,10 @@ final class CodexApprovalMonitor {
         if (!id.equals(currentId)) {
             dismiss();
             currentId = id;
+            JSONObject input = request.optJSONObject("input");
+            requestTitle = "computer_use_app".equals(request.optString("kind")) && input != null
+                    ? context.getString(R.string.codex_app_approval_title, input.optString("name"))
+                    : context.getString(R.string.codex_approval_title);
             dialog = new AppCompatDialog(context, R.style.AppTheme);
             dialog.setContentView(R.layout.codex_approval_screen);
             dialog.setCancelable(false);
@@ -111,7 +116,7 @@ final class CodexApprovalMonitor {
                     WindowManager.LayoutParams.MATCH_PARENT);
         }
         if (dialog != null) {
-            title.setText(R.string.codex_approval_title);
+            title.setText(requestTitle);
             setEnabled(true);
         }
     }

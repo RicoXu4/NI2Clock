@@ -4,6 +4,7 @@ import json
 import socket
 import sys
 from codex_approvals import MAX_REQUEST, SOCKET_PATH
+from codex_approval_policy import should_forward
 
 
 def main():
@@ -13,8 +14,11 @@ def main():
         if len(data) > MAX_REQUEST:
             raise ValueError('Request too large')
         payload = json.loads(data)
-        if payload.get('hook_event_name') != 'PermissionRequest':
-            raise ValueError('Wrong hook event')
+        if not should_forward(payload):
+            # Hooks precede automatic review. Returning no decision lets Codex
+            # review immediately, without a phone popup or a two-minute wait.
+            print('{}')
+            return
         with socket.socket(socket.AF_UNIX) as connection:
             connection.settimeout(125)
             connection.connect(str(SOCKET_PATH))

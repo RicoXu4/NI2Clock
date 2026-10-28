@@ -14,9 +14,17 @@ PAYLOAD = {'hook_event_name': 'PermissionRequest', 'session_id': 'test-chat',
 
 
 class ApprovalTests(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        transcript = Path(directory.name) / 'transcript.jsonl'
+        transcript.write_text(json.dumps({'type': 'session_meta', 'payload': {'id': 'test-chat'}}) + '\n'
+            + json.dumps({'type': 'turn_context', 'payload': {'turn_id': 'test-turn', 'approvals_reviewer': 'user'}}) + '\n')
+        self.payload = dict(PAYLOAD, turn_id='test-turn', transcript_path=str(transcript))
+
     def test_each_choice_is_scoped_once(self):
         q = ApprovalQueue()
-        a, b = q.add(PAYLOAD), q.add(PAYLOAD)
+        a, b = q.add(self.payload), q.add(self.payload)
         self.assertTrue(q.decide(a['request']['id'], 'approve'))
         self.assertFalse(q.decide(a['request']['id'], 'deny'))
         self.assertFalse(q.decide('unknown', 'approve'))
@@ -27,7 +35,7 @@ class ApprovalTests(unittest.TestCase):
 
     def test_expired_requests_cannot_be_approved(self):
         q = ApprovalQueue(lifetime=-1)
-        entry = q.add(PAYLOAD)
+        entry = q.add(self.payload)
         self.assertEqual(q.list(), [])
         self.assertFalse(q.decide(entry['request']['id'], 'approve'))
 
@@ -39,7 +47,7 @@ class ApprovalTests(unittest.TestCase):
             def sendall(self, data): self.output.write(data)
             def settimeout(self, value): pass
         q = ApprovalQueue()
-        entry = q.add(PAYLOAD)
+        entry = q.add(self.payload)
         for path, token, code in [('/approvals/' + entry['request']['id'], 'wrong', b'401'),
                                   ('/hook', 'secret', b'404'),
                                   ('/approvals/' + entry['request']['id'], 'secret', b'200'),
@@ -60,7 +68,7 @@ class ApprovalTests(unittest.TestCase):
                 for decision in ('approve', 'deny', None):
                     with socket.socket(socket.AF_UNIX) as client:
                         client.connect(str(server.path))
-                        client.sendall(json.dumps(PAYLOAD).encode() + b'\n')
+                        client.sendall(json.dumps(self.payload).encode() + b'\n')
                         deadline = time.monotonic() + 2
                         while not q.list() and time.monotonic() < deadline:
                             time.sleep(.01)
